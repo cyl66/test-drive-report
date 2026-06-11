@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>领克08 EM-P 专属试驾报告</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--brand:#C8A96E;--brand-light:#E8D5A3;--brand-dark:#A8884D;--surface:#0a0a0c;--card-bg:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);--text-primary:#fafafa;--text-secondary:#a1a1aa;--text-muted:#71717a}
+html,body{height:100%;overflow:hidden;background:#000;font-family:'PingFang SC',-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif;color:var(--text-primary);-webkit-font-smoothing:antialiased}
+
+/* Desktop phone frame */
+.desktop-wrapper{width:100%;height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1a1a2e 0%,#0a0a0f 70%)}
+.phone-frame{width:430px;max-width:100vw;height:min(932px,100vh);border-radius:44px;border:3px solid rgba(255,255,255,0.12);overflow:hidden;position:relative;background:var(--surface);box-shadow:0 0 80px rgba(200,169,110,0.08),0 0 0 1px rgba(0,0,0,0.5)}
+@media(max-width:480px){.desktop-wrapper{background:var(--surface)}.phone-frame{border-radius:0;border:none;height:100vh;width:100vw}}
+
+/* Scroll container */
+.scroll-container{width:100%;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.scroll-container::-webkit-scrollbar{display:none}
+
+/* Pages */
+.page{min-height:100%;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:24px 20px;position:relative;overflow:hidden}
+
+/* Page dots */
+.page-dots{position:fixed;right:8px;top:50%;transform:translateY(-50%);z-index:100;display:flex;flex-direction:column;gap:8px}
+.page-dot{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,0.2);transition:all .4s cubic-bezier(.16,1,.3,1);cursor:pointer}
+.page-dot.active{width:6px;height:24px;background:var(--brand)}
+
+/* Page counter */
+.page-counter{position:fixed;top:16px;right:20px;z-index:100;font-size:11px;color:var(--text-muted);letter-spacing:1px;font-variant-numeric:tabular-nums}
+
+/* Reveal animation */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+.scale-reveal{opacity:0;transform:scale(.94);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+.page.visible .reveal{opacity:1;transform:translateY(0)}
+.page.visible .scale-reveal{opacity:1;transform:scale(1)}
+.d1{transition-delay:.05s}.d2{transition-delay:.12s}.d3{transition-delay:.20s}.d4{transition-delay:.32s}.d5{transition-delay:.44s}.d6{transition-delay:.56s}
+
+/* Cards */
+.glass-card{background:var(--card-bg);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid var(--border);border-radius:16px;padding:16px}
+.gold-border{border:1.5px solid var(--brand);background:linear-gradient(135deg,rgba(200,169,110,0.08),rgba(200,169,110,0.02))}
+.gold-border::before{content:'';position:absolute;inset:-1px;border-radius:17px;padding:1.5px;background:linear-gradient(135deg,var(--brand-light),var(--brand-dark));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+
+/* Badge */
+.badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500;letter-spacing:1px}
+.badge-gold{background:linear-gradient(135deg,rgba(200,169,110,0.2),rgba(200,169,110,0.08));color:var(--brand-light);border:1px solid rgba(200,169,110,0.3)}
+
+/* Scroll hint */
+.scroll-hint{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;animation:scrollHint 2s ease-in-out infinite}
+@keyframes scrollHint{0%,100%{opacity:.4;transform:translateX(-50%) translateY(0)}50%{opacity:1;transform:translateX(-50%) translateY(6px)}}
+
+/* Typing cursor */
+.typing-cursor{display:inline-block;width:2px;height:1em;background:var(--brand);margin-left:2px;animation:blink 1s step-end infinite;vertical-align:text-bottom}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* Path animation */
+.route-path{stroke-dasharray:2000;stroke-dashoffset:2000;transition:stroke-dashoffset 3s cubic-bezier(.16,1,.3,1)}
+.page.visible .route-path{stroke-dashoffset:0}
+
+/* Car on path */
+.car-marker{offset-path:path('M60,340 Q80,280 120,250 Q180,200 200,180 Q240,140 280,160 Q320,180 340,200 Q360,240 340,260 Q300,280 260,260');offset-rotate:0deg;opacity:0;transition:opacity .5s}
+.page.visible .car-marker{opacity:1;animation:drivePath 3s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes drivePath{0%{offset-distance:0%}100%{offset-distance:100%}}
+
+/* Progress bar animation */
+.progress-fill{width:0;transition:width 1.2s cubic-bezier(.16,1,.3,1)}
+.page.visible .progress-fill{width:var(--target-width)}
+
+/* Countdown */
+.countdown-unit{display:flex;flex-direction:column;align-items:center;gap:4px}
+.countdown-num{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--brand-light);line-height:1}
+.countdown-label{font-size:10px;color:var(--text-muted)}
+
+/* Star rating */
+.star{color:var(--brand);font-size:12px}
+
+/* CTA button */
+.cta-btn{display:block;width:100%;padding:16px;border-radius:14px;background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#0a0a0c;font-size:16px;font-weight:700;text-align:center;text-decoration:none;border:none;cursor:pointer;transition:all .3s cubic-bezier(.16,1,.3,1);box-shadow:0 4px 24px rgba(200,169,110,0.3)}
+.cta-btn:active{transform:scale(.97);box-shadow:0 2px 12px rgba(200,169,110,0.2)}
+
+/* Tag */
+.data-tag{display:inline-block;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:500}
+
+/* Table */
+.compare-table{width:100%;border-collapse:collapse;font-size:11px}
+.compare-table th,.compare-table td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--border)}
+.compare-table th{color:var(--text-muted);font-weight:500;font-size:10px}
+.compare-table td:first-child{text-align:left;color:var(--text-secondary)}
+.compare-highlight{background:linear-gradient(135deg,rgba(200,169,110,0.15),rgba(200,169,110,0.05));color:var(--brand-light)!important;font-weight:600}
+
+/* Hero overlay */
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,12,0.3) 0%,rgba(10,10,12,0.6) 40%,rgba(10,10,12,0.95) 100%)}
+
+/* Stat grid */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat-card{text-align:center;padding:14px 10px}
+.stat-value{font-size:22px;font-weight:700;color:var(--brand-light);line-height:1.2}
+.stat-unit{font-size:12px;font-weight:400;color:var(--text-muted)}
+.stat-label{font-size:11px;color:var(--text-secondary);margin-top:4px}
+</style>
+</head>
+<body>
+<div class="desktop-wrapper">
+<div class="phone-frame">
+<div class="scroll-container" id="scrollContainer">
+
+<!-- Page 1: Hero -->
+<section class="page" id="page1" style="padding:0;justify-content:flex-end">
+  <img src="https://dm30webimages.lynkco.com.cn/LynkCoPortal/2026/lyl/08/sykv08p06021.jpg" alt="领克08 EM-P" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%">
+  <div class="hero-overlay"></div>
+  <div style="position:relative;z-index:2;padding:0 24px 40px">
+    <p class="reveal d1" style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">专属为 <span style="color:var(--brand-light);font-weight:600">陈先生</span> 定制</p>
+    <span class="badge badge-gold reveal d2" style="margin-bottom:16px;display:inline-block">专属试驾报告</span>
+    <h1 class="reveal d3" style="font-size:28px;font-weight:700;line-height:1.3;letter-spacing:-0.5px;margin-bottom:24px">不止是试驾，<br>是一场对话。</h1>
+    <div style="display:flex;gap:20px" class="reveal d4">
+      <div><span style="font-size:20px;font-weight:700;color:var(--brand-light)">35</span><span style="font-size:12px;color:var(--text-muted)">min</span><p style="font-size:10px;color:var(--text-secondary)">深度试驾</p></div>
+      <div><span style="font-size:20px;font-weight:700;color:var(--brand-light)">1,247</span><p style="font-size:10px;color:var(--text-secondary)">AI数据点</p></div>
+      <div><span style="font-size:20px;font-weight:700;color:var(--brand-light)">12.8</span><span style="font-size:12px;color:var(--text-muted)">km</span><p style="font-size:10px;color:var(--text-secondary)">探索里程</p></div>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span style="font-size:10px;color:var(--text-muted);letter-spacing:2px">上滑探索</span>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round"/></svg>
+  </div>
+</section>
+
+<!-- Page 2: AI试驾总结 -->
+<section class="page" id="page2">
+  <h2 class="reveal d1" style="font-size:22px;font-weight:700;line-height:1.4;margin-bottom:20px">陈先生，AI读懂了<br>你的驾驶。<span class="typing-cursor"></span></h2>
+  <div class="stat-grid" style="margin-bottom:12px">
+    <div class="glass-card reveal d2" style="text-align:center">
+      <div style="font-size:24px;margin-bottom:6px">🛡️</div>
+      <p style="font-size:13px;font-weight:600">稳定型驾驶</p>
+      <p style="font-size:10px;color:var(--text-muted);margin-top:2px">制动平顺 · 转向柔和</p>
+    </div>
+    <div class="glass-card reveal d3" style="text-align:center">
+      <div style="font-size:24px;margin-bottom:6px">⚡</div>
+      <p style="font-size:13px;font-weight:600">动力高敏感</p>
+      <p style="font-size:10px;color:var(--text-muted);margin-top:2px"><span style="color:var(--brand-light);font-weight:700">2.3秒</span> 30→89km/h</p>
+    </div>
+    <div class="glass-card reveal d4" style="text-align:center">
+      <div style="font-size:24px;margin-bottom:6px">🔋</div>
+      <p style="font-size:13px;font-weight:600">纯电优先</p>
+      <p style="font-size:10px;color:var(--text-muted);margin-top:2px">90%行程纯电驱动</p>
+    </div>
+    <div class="glass-card reveal d5" style="text-align:center">
+      <div style="font-size:24px;margin-bottom:6px">🧠</div>
+      <p style="font-size:13px;font-weight:600">智能高接受</p>
+      <p style="font-size:10px;color:var(--text-muted);margin-top:2px"><span style="color:var(--brand-light);font-weight:700">12次</span> 语音唤醒</p>
+    </div>
+  </div>
+  <div class="glass-card gold-border reveal d6" style="position:relative;text-align:center;margin-top:4px">
+    <p style="font-size:11px;color:var(--text-secondary);line-height:1.6">你是一位<span style="color:var(--brand-light);font-weight:600">理性且有品位的驾驶者</span>，追求动力与质感的平衡，不盲从参数，更在意每一次驾驶的真实感受。领克08 EM-P，恰好与你不谋而合。</p>
+  </div>
+</section>
+
+<!-- Page 3: 试驾回顾 -->
+<section class="page" id="page3">
+  <div class="reveal d1" style="margin-bottom:16px">
+    <p style="font-size:11px;color:var(--text-muted);letter-spacing:2px;margin-bottom:4px">试驾回顾</p>
+    <h2 style="font-size:22px;font-weight:700">35分钟，值得回顾</h2>
+  </div>
+  <div class="reveal d2" style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="2" stroke="var(--brand)" stroke-width="1.2"/><path d="M4 7H7V10" stroke="var(--brand)" stroke-width="1.2" stroke-linecap="round"/></svg>
+    <span style="font-size:13px;color:var(--text-secondary)">2026.06.08 · 杭州拱墅领克中心</span>
+  </div>
+  <div class="stat-grid reveal d3" style="margin-bottom:12px">
+    <div class="glass-card stat-card">
+      <div class="stat-value">35<span class="stat-unit">min</span></div>
+      <div class="stat-label">深度体验</div>
+      <div style="font-size:9px;color:var(--brand);margin-top:2px">超过78%用户</div>
+    </div>
+    <div class="glass-card stat-card">
+      <div class="stat-value">12.8<span class="stat-unit">km</span></div>
+      <div class="stat-label">探索里程</div>
+    </div>
+    <div class="glass-card stat-card">
+      <div class="stat-value">1.8<span class="stat-unit">L</span></div>
+      <div class="stat-label">百公里油耗</div>
+    </div>
+    <div class="glass-card stat-card">
+      <div class="stat-value">3<span class="stat-unit">种</span></div>
+      <div class="stat-label">驾驶模式</div>
+    </div>
+  </div>
+  <div class="glass-card reveal d4">
+    <p style="font-size:11px;color:var(--text-secondary);line-height:1.7">路线从拱墅领克中心出发，途经莫干山路、德胜快速路、西溪湿地区域，覆盖城市拥堵、快速路、景区道路三种典型路况，充分验证了车辆在多元场景下的表现。</p>
+  </div>
+</section>
+
+<!-- Page 4: 试驾轨迹 -->
+<section class="page" id="page4">
+  <div class="reveal d1" style="margin-bottom:16px">
+    <p style="font-size:11px;color:var(--text-muted);letter-spacing:2px;margin-bottom:4px">试驾轨迹</p>
+    <h2 style="font-size:22px;font-weight:700">你的探索路线</h2>
+  </div>
+  <div class="glass-card reveal d2" style="padding:8px;margin-bottom:12px;overflow:hidden">
+    <svg viewBox="0 0 400 400" style="width:100%;height:auto" id="routeSvg">
+      <!-- Road background -->
+      <path d="M60,340 Q80,280 120,250 Q180,200 200,180 Q240,140 280,160 Q320,180 340,200 Q360,240 340,260 Q300,280 260,260" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="20" stroke-linecap="round"/>
+      <!-- Route path -->
+      <path class="route-path" d="M60,340 Q80,280 120,250 Q180,200 200,180 Q240,140 280,160 Q320,180 340,200 Q360,240 340,260 Q300,280 260,260" fill="none" stroke="url(#routeGrad)" stroke-width="3" stroke-linecap="round"/>
+      <defs>
+        <linearGradient id="routeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#4ade80"/>
+          <stop offset="50%" stop-color="var(--brand)"/>
+          <stop offset="100%" stop-color="#f87171"/>
+        </linearGradient>
+      </defs>
+      <!-- Start point -->
+      <circle cx="60" cy="340" r="8" fill="#4ade80" opacity="0.2"/>
+      <circle cx="60" cy="340" r="4" fill="#4ade80"/>
+      <text x="60" y="365" text-anchor="middle" fill="#4ade80" font-size="10">起点</text>
+      <!-- Waypoint: 西溪湿地 -->
+      <circle cx="200" cy="180" r="5" fill="var(--brand)" opacity="0.6"/>
+      <text x="200" y="170" text-anchor="middle" fill="var(--brand-light)" font-size="9">西溪湿地</text>
+      <!-- Waypoint: 德胜快速路 -->
+      <circle cx="340" cy="200" r="5" fill="var(--brand)" opacity="0.6"/>
+      <text x="340" y="190" text-anchor="middle" fill="var(--brand-light)" font-size="9">德胜快速路</text>
+      <!-- End point -->
+      <circle cx="260" cy="260" r="8" fill="#f87171" opacity="0.2"/>
+      <circle cx="260" cy="260" r="4" fill="#f87171"/>
+      <text x="260" y="285" text-anchor="middle" fill="#f87171" font-size="10">终点</text>
+      <!-- Moving car -->
+      <circle r="5" fill="var(--brand-light)" class="car-marker" style="offset-path:path('M60,340 Q80,280 120,250 Q180,200 200,180 Q240,140 280,160 Q320,180 340,200 Q360,240 340,260 Q300,280 260,260');offset-rotate:0deg">
+        <animate attributeName="r" values="5;6;5" dur="1.5s" repeatCount="indefinite"/>
+      </circle>
+    </svg>
+  </div>
+  <div class="stat-grid reveal d3">
+    <div class="glass-card stat-card">
+      <div class="stat-value">22<span class="stat-unit">km/h</span></div>
+      <div class="stat-label">平均时速</div>
+    </div>
+    <div class="glass-card stat-card">
+      <div class="stat-value">89<span class="stat-unit">km/h</span></div>
+      <div class="stat-label">最高时速</div>
+    </div>
+    <div class="glass-card stat-card" style="grid-column:1/-1">
+      <div class="stat-value">+32<span class="stat-unit">m</span></div>
+      <div class="stat-label">海拔变化</div>
+    </div>
+  </div>
+</section>
+
+<!-- Page 5: 体验亮点 -->
+<section class="page" id="page5">
+  <div class="reveal d1" style="margin-bottom:20px">
+    <p style="font-size:11px;color:var(--text-muted);letter-spacing:2px;margin-bottom:4px">体验亮点</p>
+    <h2 style="font-size:20px;font-weight:700;line-height:1.4">你的试驾，有<span style="color:var(--brand-light)">5个瞬间</span><br>值得记住</h2>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div class="glass-card reveal d2" style="display:flex;align-items:center;gap:12px">
+      <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(200,169,110,0.15),rgba(200,169,110,0.05));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🎵</div>
+      <div><p style="font-size:13px;font-weight:600"><span style="color:var(--brand-light)">22分钟</span> 音乐沉浸</p><p style="font-size:10px;color:var(--text-muted)">哈曼卡顿23扬声器环绕声场</p></div>
+    </div>
+    <div class="glass-card reveal d3" style="display:flex;align-items:center;gap:12px">
+      <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(200,169,110,0.15),rgba(200,169,110,0.05));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">⚡</div>
+      <div><p style="font-size:13px;font-weight:600"><span style="color:var(--brand-light)">2.3秒</span> 中段加速</p><p style="font-size:10px;color:var(--text-muted)">30→89km/h 一气呵成</p></div>
+    </div>
+    <div class="glass-card reveal d4" style="display:flex;align-items:center;gap:12px">
+      <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(200,169,110,0.15),rgba(200,169,110,0.05));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🛣️</div>
+      <div><p style="font-size:13px;font-weight:600"><span style="color:var(--brand-light)">5.2km</span> 智驾陪伴</p><p style="font-size:10px;color:var(--text-muted)">NOA领航辅助轻松驾驭</p></div>
+    </div>
+    <div class="glass-card reveal d5" style="display:flex;align-items:center;gap:12px">
+      <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(200,169,110,0.15),rgba(200,169,110,0.05));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">⛽</div>
+      <div><p style="font-size:13px;font-weight:600">亏电油耗 <span style="color:var(--brand-light)">1.8L/100km</span></p><p style="font-size:10px;color:var(--text-muted)">EM-P超级增程电动方案</p></div>
+    </div>
+    <div class="glass-card reveal d6" style="display:flex;align-items:center;gap:12px">
+      <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(200,169,110,0.15),rgba(200,169,110,0.05));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🗣️</div>
+      <div><p style="font-size:13px;font-weight:600"><span style="color:var(--brand-light)">12次</span> 语音交互零失误</p><p style="font-size:10px;color:var(--text-muted)">LYNK Flyme Auto 智能语音</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Page 6: 为什么适合你 -->
+<section class="page" id="page6">
+  <div class="reveal d1" style="margin-bottom:20px">
+    <p style="font-size:11px;color:var(--text-muted);letter-spacing:2px;margin-bottom:4px">AI匹配分析</p>
+    <h2 style="font-size:20px;font-weight:700;line-height:1.4">不是所有的车<br>都适合<span style="color:var(--brand-light)">陈先生</span></h2>
+  </div>
+  <div class="stat-grid" style="gap:10px">
+    <div class="glass-card gold-border reveal d2" style="position:relative;text-align:center;padding:18px 12px">
+      <div style="font-size:28px;margin-bottom:8px">⚖️</div>
+      <p style="font-size:13px;font-weight:600;margin-bottom:4px">平衡型驾驶者</p>
+      <p style="font-size:10px;color:var(--text-secondary);line-height:1.5">动力与节能并重，08 EM-P的EM-P方案正合你意</p>
+    </div>
+    <div class="glass-card gold-border reveal d3" style="position:relative;text-align:center;padding:18px 12px">
+      <div style="font-size:28px;margin-bottom:8px">🎧</div>
+      <p style="font-size:13px;font-weight:600;margin-bottom:4px">对声音有要求</p>
+      <p style="font-size:10px;color:var(--text-secondary);line-height:1.5">23扬声器哈曼卡顿，试驾22分钟沉浸印证</p>
+    </div>
+    <div class="glass-card gold-border reveal d4" style="position:relative;text-align:center;padding:18px 12px">
+      <div style="font-size:28px;margin-bottom:8px">🤝</div>
+      <p style="font-size:13px;font-weight:600;margin-bottom:4px">拥抱智能但不盲从</p>
+      <p style="font-size:10px;color:var(--text-secondary);line-height:1.5">12次语音唤醒说明你善用但不过度依赖</p>
+    </div>
+    <div class="glass-card gold-border reveal d5" style="position:relative;text-align:center;padding:18px 12px">
+      <div style="font-size:28px;margin-bottom:8px">✨</div>
+      <p style="font-size:13px;font-weight:600;margin-bottom:4px">不care参数care质感</p>
+      <p style="font-size:10px;color:var(--text-secondary);line-height:1.5">Nappa内饰+幻影紫，质感才是你的语言</p>
+    </div>
+  </div>
+</section>
+
+<!-- Page 7: 竞品对比 -->
+<section class="page" id="page7" style="padding:20px 12px">
+  <div class="reveal d1" style="margin-bottom:14px;padding:0 8px">
+    <p style="font-size:11px;color:var(--text-muted);letter-spacing:2px;margin-bottom:4px">竞品对比</p>
+    <h2 style="font-size:20px;font-weight:700">为什么是08 EM-P</h2>
+  </div>
+  <div class="glass-card reveal d2" style="padding:0;overflow:hidden">
+    <div style="overflow-x:auto">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th style="text-align:left">维度</th>
+            <th class="compare-highlight" style="border-radius:8px 0 0 0">08 EM-P ★</th>
+            <th>问界M7</th>
+            <th style="border-radius:0 8px 0 0">理想L7</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>静谧性</td><td class="compare-highlight">NVH 35dB ★</td><td>38dB</td><td>37dB</td></tr>
+          <tr><td>音响系统</td><td class="compare-highlight">23扬声器 ★</td><td>19扬声器</td><td>21扬声器</td></tr>
+          <tr><td>匮电油耗</td><td class="compare-highlight">1.8L ★</td><td>2.2L</td><td>2.4L</td></tr>
+          <tr><td>综合续航</td><td class="compare-highlight">1400km ★</td><td>1250km</td><td>1315km</td></tr>
+          <tr><td>零百加速</td><td>4.6s</td><td>4.8s</td><td class="compare-highlight">5.3s</td></tr>
+          <tr><td>三电质保</td><td class="compare-highlight">终身 ★</td><td>8年</td><td>8年</td></tr>
+          <tr><td>智能驾驶</td><td>NOA领航</td><td class="compare-highlight">ADS 2.0 ★</td><td>NOA</td></tr>
+          <tr><td>起售价</td><td class="compare-highlight">¥19.98w ★</td><td>¥24.98w</td><td>¥31.98w</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Page 8: 真实车主评价 -->
+<section class="page" id="page8">
+  <div class="reveal d1" style="margin-bottom:14px">
+    <p style="font-size:11px;color:var(--text-muted);letter-spacing:2px;margin-bottom:4px">车主口碑</p>
+    <h2 style="font-size:20px;font-weight:700">他们已经做出了选择</h2>
+  </div>
+  <!-- Rating tags -->
+  <div class="reveal d2" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
+    <span class="data-tag" style="background:rgba(200,169,110,0.12);color:var(--brand-light)">静谧性 98%</span>
+    <span class="data-tag" style="background:rgba(200,169,110,0.12);color:var(--brand-light)">音响 95%</span>
+    <span class="data-tag" style="background:rgba(200,169,110,0.12);color:var(--brand-light)">能耗 92%</span>
+    <span class="data-tag" style="background:rgba(200,169,110,0.12);color:var(--brand-light)">操控 89%</span>
+    <span class="data-tag" style="background:rgba(200,169,110,0.12);color:var(--brand-light)">空间 91%</span>
+  </div>
+  <!-- Reviews -->
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+    <div class="glass-card reveal d3" style="padding:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div><span class="star">★★★★★</span><span style="font-size:10px;color:var(--text-muted);margin-left:4px">5.0</span></div>
+        <span class="data-tag" style="background:rgba(74,222,128,0.1);color:#4ade80">静谧性</span>
+      </div>
+      <p style="font-size:11px;color:var(--text-secondary);line-height:1.6;margin-bottom:6px">"纯电模式下几乎听不到电机声，关窗后整个世界都安静了。比朋友的三系好太多。"</p>
+      <p style="font-size:10px;color:var(--text-muted)">— 张先生 · 杭州车主 · 行驶3,200km</p>
+    </div>
+    <div class="glass-card reveal d4" style="padding:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div><span class="star">★★★★★</span><span style="font-size:10px;color:var(--text-muted);margin-left:4px">5.0</span></div>
+        <span class="data-tag" style="background:rgba(200,169,110,0.1);color:var(--brand-light)">音响</span>
+      </div>
+      <p style="font-size:11px;color:var(--text-secondary);line-height:1.6;margin-bottom:6px">"哈曼卡顿23扬声器不是噱头，是真的好听。开车变成了一种享受。"</p>
+      <p style="font-size:10px;color:var(--text-muted)">— 李女士 · 上海车主 · 行驶5,800km</p>
+    </div>
+    <div class="glass-card reveal d5" style="padding:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div><span class="star">★★★★<span style="color:var(--text-muted)">★</span></span><span style="font-size:10px;color:var(--text-muted);margin-left:4px">4.8</span></div>
+        <span class="data-tag" style="background:rgba(96,165,250,0.1);color:#60a5fa">能耗</span>
+      </div>
+      <p style="font-size:11px;color:var(--text-secondary);line-height:1.6;margin-bottom:6px">"亏电跑长途油耗才1.8L，一箱油跑了1300多公里，真的省心。"</p>
+      <p style="font-size:10px;color:var(--text-muted)">— 王先生 · 深圳车主 · 行驶12,400km</p>
+    </div>
+  </div>
+  <!-- NPS bars -->
+  <div class="glass-card reveal d6" style="padding:12px">
+    <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px">车主NPS满意度</p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px"><span style="color:var(--text-secondary)">推荐意愿</span><span style="color:var(--brand-light)">94%</span></div>
+        <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden"><div class="progress-fill" style="--target-width:94%;height:100%;background:var(--brand);border-radius:2px"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px"><span style="color:var(--text-secondary)">产品满意度</span><span style="color:var(--brand-light)">91%</span></div>
+        <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden"><div class="progress-fill" style="--target-width:91%;height:100%;background:var(--brand);border-radius:2px"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px"><span style="color:var(--text-secondary)">复购意愿</span><span style="color:var(--brand-light)">87%</span></div>
+        <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden"><div class="progress-fill" style="--target-width:87%;height:100%;background:var(--brand);border-radius:2px"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Page 9: 车型核心卖点 -->
+<section class="page" id="page9">
+  <div class="reveal d1" style="margin-bottom:16px">
+    <p style="font-size:11px;color:var(--text-muted);letter-spacing:2px;margin-bottom:4px">核心卖点</p>
+    <h2 style="font-size:20px;font-weight:700">08 EM-P 实力一览</h2>
+  </div>
+  <div class="stat-grid" style="gap:8px">
+    <div class="glass-card reveal d2" style="text-align:center;padding:14px 8px">
+      <div style="font-size:22px;margin-bottom:4px">🔋</div>
+      <div style="font-size:18px;font-weight:700;color:var(--brand-light)">1,400<span style="font-size:11px;font-weight:400">km</span></div>
+      <div style="font-size:10px;color:var(--text-secondary)">综合续航</div>
+    </div>
+    <div class="glass-card reveal d3" style="text-align:center;padding:14px 8px">
+      <div style="font-size:22px;margin-bottom:4px">⚡</div>
+      <div style="font-size:18px;font-weight:700;color:var(--brand-light)">4.6<span style="font-size:11px;font-weight:400">s</span></div>
+      <div style="font-size:10px;color:var(--text-secondary)">零百加速</div>
+    </div>
+    <div class="glass-card reveal d3" style="text-align:center;padding:14px 8px">
+      <div style="font-size:22px;margin-bottom:4px">🔊</div>
+      <div style="font-size:18px;font-weight:700;color:var(--brand-light)">23<span style="font-size:11px;font-weight:400">扬声器</span></div>
+      <div style="font-size:10px;color:var(--text-secondary)">哈曼卡顿</div>
+    </div>
+    <div class="glass-card reveal d4" style="text-align:center;padding:14px 8px">
+      <div style="font-size:22px;margin-bottom:4px">🛡️</div>
+      <div style="font-size:14px;font-weight:700;color:var(--brand-light)">终身质保</div>
+      <div style="font-size:10px;color:var(--text-secondary)">三电系统</div>
+    </div>
+    <div class="glass-card reveal d4" style="text-align:center;padding:14px 8px">
+      <div style="font-size:22px;margin-bottom:4px">🧭</div>
+      <div style="font-size:14px;font-weight:700;color:var(--brand-light)">NOA领航</div>
+      <div style="font-size:10px;color:var(--text-secondary)">高速智驾</div>
+    </div>
+    <div class="glass-card reveal d5" style="text-align:center;padding:14px 8px">
+      <div style="font-size:22px;margin-bottom:4px">📱</div>
+      <div style="font-size:14px;font-weight:700;color:var(--brand-light)">LYNK Flyme</div>
+      <div style="font-size:10px;color:var(--text-secondary)">智能座舱</div>
+    </div>
+    <div class="glass-card reveal d5" style="text-align:center;padding:14px 8px">
+      <div style="font-size:22px;margin-bottom:4px">💜</div>
+      <div style="font-size:14px;font-weight:700;color:var(--brand-light)">幻影紫</div>
+      <div style="font-size:10px;color:var(--text-secondary)">限定车色</div>
+    </div>
+    <div class="glass-card reveal d6" style="text-align:center;padding:14px 8px">
+      <div style="font-size:22px;margin-bottom:4px">⭐</div>
+      <div style="font-size:14px;font-weight:700;color:var(--brand-light)">Euro NCAP</div>
+      <div style="font-size:10px;color:var(--text-secondary)">5星安全</div>
+    </div>
+  </div>
+</section>
+
+<!-- Page 10: 限时购车福利 -->
+<section class="page" id="page10">
+  <div class="reveal d1" style="margin-bottom:14px">
+    <p style="font-size:11px;color:var(--text-muted);letter-spacing:2px;margin-bottom:4px">限时福利</p>
+    <h2 style="font-size:20px;font-weight:700">专属权益 · 限时锁定</h2>
+  </div>
+  <!-- Countdown -->
+  <div class="glass-card reveal d2" style="margin-bottom:14px;padding:16px">
+    <p style="font-size:10px;color:var(--text-muted);text-align:center;margin-bottom:10px;letter-spacing:1px">距福利截止还剩</p>
+    <div style="display:flex;justify-content:center;gap:16px" id="countdown">
+      <div class="countdown-unit"><span class="countdown-num" id="cd-days">07</span><span class="countdown-label">天</span></div>
+      <span style="font-size:24px;color:var(--brand);line-height:1;padding-top:2px">:</span>
+      <div class="countdown-unit"><span class="countdown-num" id="cd-hours">12</span><span class="countdown-label">时</span></div>
+      <span style="font-size:24px;color:var(--brand);line-height:1;padding-top:2px">:</span>
+      <div class="countdown-unit"><span class="countdown-num" id="cd-mins">00</span><span class="countdown-label">分</span></div>
+      <span style="font-size:24px;color:var(--brand);line-height:1;padding-top:2px">:</span>
+      <div class="countdown-unit"><span class="countdown-num" id="cd-secs">00</span><span class="countdown-label">秒</span></div>
+    </div>
+  </div>
+  <!-- Benefits -->
+  <div class="stat-grid" style="gap:10px">
+    <div class="glass-card gold-border reveal d3" style="position:relative;text-align:center;padding:16px 10px">
+      <div style="font-size:24px;margin-bottom:6px">🎁</div>
+      <p style="font-size:13px;font-weight:600;margin-bottom:2px">臻选礼盒</p>
+      <p style="font-size:10px;color:var(--text-secondary)">余<span style="color:var(--brand-light);font-weight:700">186</span>份</p>
+    </div>
+    <div class="glass-card gold-border reveal d4" style="position:relative;text-align:center;padding:16px 10px">
+      <div style="font-size:24px;margin-bottom:6px">💰</div>
+      <p style="font-size:13px;font-weight:600;margin-bottom:2px">限时金融方案</p>
+      <p style="font-size:10px;color:var(--text-secondary)">日供 <span style="color:var(--brand-light);font-weight:700">¥68</span></p>
+    </div>
+    <div class="glass-card gold-border reveal d5" style="position:relative;text-align:center;padding:16px 10px">
+      <div style="font-size:24px;margin-bottom:6px">🛡️</div>
+      <p style="font-size:13px;font-weight:600;margin-bottom:2px">三电终身质保</p>
+      <p style="font-size:10px;color:var(--text-secondary)">首任车主专享</p>
+    </div>
+    <div class="glass-card gold-border reveal d6" style="position:relative;text-align:center;padding:16px 10px">
+      <div style="font-size:24px;margin-bottom:6px">🏘️</div>
+      <p style="font-size:13px;font-weight:600;margin-bottom:2px">领地伙伴特权</p>
+      <p style="font-size:10px;color:var(--text-secondary)">Co:Club会员权益</p>
+    </div>
+  </div>
+</section>
+
+<!-- Page 11: 立即下订 -->
+<section class="page" id="page11">
+  <div class="reveal d1" style="margin-bottom:16px">
+    <p style="font-size:11px;color:var(--text-muted);letter-spacing:2px;margin-bottom:4px">AI推荐配置</p>
+    <h2 style="font-size:20px;font-weight:700">为你量身推荐</h2>
+  </div>
+  <!-- Config card -->
+  <div class="glass-card gold-border reveal d2" style="position:relative;margin-bottom:16px;padding:20px">
+    <div style="text-align:center;margin-bottom:16px">
+      <span class="badge badge-gold">AI推荐</span>
+    </div>
+    <h3 style="font-size:18px;font-weight:700;text-align:center;margin-bottom:14px">四驱性能Halo</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:10px;text-align:center">
+        <p style="font-size:10px;color:var(--text-muted)">外观色</p>
+        <p style="font-size:12px;font-weight:600;color:var(--brand-light)">幻影紫</p>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:10px;text-align:center">
+        <p style="font-size:10px;color:var(--text-muted)">内饰</p>
+        <p style="font-size:12px;font-weight:600;color:var(--brand-light)">暮光棕Nappa</p>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:10px;text-align:center">
+        <p style="font-size:10px;color:var(--text-muted)">轮毂</p>
+        <p style="font-size:12px;font-weight:600;color:var(--brand-light)">21寸</p>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:10px;text-align:center">
+        <p style="font-size:10px;color:var(--text-muted)">选装</p>
+        <p style="font-size:12px;font-weight:600;color:var(--brand-light)">科技智享包</p>
+      </div>
+    </div>
+    <div style="text-align:center;padding-top:12px;border-top:1px solid var(--border)">
+      <p style="font-size:11px;color:var(--text-muted)">建议零售价</p>
+      <p style="font-size:28px;font-weight:700;color:var(--brand-light);margin-top:2px">¥248,800</p>
+    </div>
+  </div>
+  <button class="cta-btn reveal d3" onclick="alert('即将跳转至下订页面')">定制我的08 EM-P，锁定权益 →</button>
+</section>
+
+<!-- Page 12: 联系顾问 -->
+<section class="page" id="page12">
+  <div class="reveal d1" style="margin-bottom:20px">
+    <p style="font-size:11px;color:var(--text-muted);letter-spacing:2px;margin-bottom:4px">专属顾问</p>
+    <h2 style="font-size:20px;font-weight:700">随时联系我们</h2>
+  </div>
+  <!-- Advisor card -->
+  <div class="glass-card reveal d2" style="text-align:center;padding:24px 16px;margin-bottom:14px">
+    <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-dark));margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:26px">👨‍💼</div>
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:2px">张顾问</h3>
+    <p style="font-size:11px;color:var(--brand-light);margin-bottom:4px">拱墅店首席产品专家</p>
+    <p style="font-size:11px;color:var(--text-secondary)">5年领克服务经验 · 好评率99.2%</p>
+  </div>
+  <!-- Contact info -->
+  <div class="glass-card reveal d3" style="padding:14px;margin-bottom:10px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 2h3l1.5 4-2 1.5a10 10 0 004 4L11 9.5 15 11v3a1 1 0 01-1 1C7.5 14 2 8.5 2 3a1 1 0 011-1z" stroke="var(--brand)" stroke-width="1.2" stroke-linejoin="round"/></svg>
+      <span style="font-size:12px;color:var(--text-secondary)">188-XXXX-6789</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="2" stroke="var(--brand)" stroke-width="1.2"/><path d="M2 5l6 4 6-4" stroke="var(--brand)" stroke-width="1.2" stroke-linejoin="round"/></svg>
+      <span style="font-size:12px;color:var(--text-secondary)">企业微信: 张顾问_拱墅店</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1C5 1 2 3.5 2 7c0 3 3.5 6.5 6 8 2.5-1.5 6-5 6-8 0-3.5-3-6-6-6z" stroke="var(--brand)" stroke-width="1.2"/><circle cx="8" cy="7" r="2" stroke="var(--brand)" stroke-width="1.2"/></svg>
+      <span style="font-size:12px;color:var(--text-secondary)">杭州市拱墅区莫干山路领克中心</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="var(--brand)" stroke-width="1.2"/><path d="M2 6h12M5 9h2M5 11h4" stroke="var(--brand)" stroke-width="1" stroke-linecap="round"/></svg>
+      <span style="font-size:12px;color:var(--text-secondary)">营业时间 09:00 - 21:00</span>
+    </div>
+  </div>
+  <!-- Buttons -->
+  <div class="reveal d4" style="display:flex;gap:10px">
+    <button class="cta-btn" style="flex:1" onclick="alert('正在拨打顾问电话...')">📞 立即致电</button>
+    <button style="flex:1;padding:16px;border-radius:14px;background:transparent;border:1.5px solid var(--brand);color:var(--brand-light);font-size:14px;font-weight:600;cursor:pointer;transition:all .3s" onclick="alert('即将跳转至企业微信...')">💬 添加企微</button>
+  </div>
+  <p class="reveal d5" style="text-align:center;font-size:10px;color:var(--text-muted);margin-top:16px">领克08 EM-P · 不止于车</p>
+</section>
+
+</div><!-- scroll-container -->
+
+<!-- Page dots (generated by JS) -->
+<nav class="page-dots" id="pageDots"></nav>
+
+<!-- Page counter -->
+<div class="page-counter" id="pageCounter">01/12</div>
+
+</div><!-- phone-frame -->
+</div><!-- desktop-wrapper -->
+
+<script>
+(function(){
+  const container = document.getElementById('scrollContainer');
+  const pages = document.querySelectorAll('.page');
+  const dotsNav = document.getElementById('pageDots');
+  const counterEl = document.getElementById('pageCounter');
+  const totalPages = pages.length;
+
+  // Generate dots
+  for(let i=0;i<totalPages;i++){
+    const dot = document.createElement('div');
+    dot.className = 'page-dot' + (i===0?' active':'');
+    dot.addEventListener('click',()=>{pages[i].scrollIntoView({behavior:'smooth'})});
+    dotsNav.appendChild(dot);
+  }
+  const dots = dotsNav.querySelectorAll('.page-dot');
+
+  // IntersectionObserver for animations & active dot
+  const observer = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        const page = entry.target;
+        page.classList.add('visible');
+        const idx = Array.from(pages).indexOf(page);
+        dots.forEach((d,i)=>d.classList.toggle('active',i===idx));
+        counterEl.textContent = String(idx+1).padStart(2,'0')+'/'+totalPages;
+      }
+    });
+  },{root:container,threshold:0.5});
+
+  pages.forEach(p=>observer.observe(p));
+
+  // Keyboard navigation
+  document.addEventListener('keydown',(e)=>{
+    const activePage = document.querySelector('.page.visible:last-of-type') || pages[0];
+    let idx = Array.from(pages).indexOf(activePage);
+    if(e.key==='ArrowDown'||e.key==='ArrowRight'||e.key===' '){
+      e.preventDefault();
+      if(idx<totalPages-1) pages[idx+1].scrollIntoView({behavior:'smooth'});
+    }else if(e.key==='ArrowUp'||e.key==='ArrowLeft'){
+      e.preventDefault();
+      if(idx>0) pages[idx-1].scrollIntoView({behavior:'smooth'});
+    }
+  });
+
+  // Countdown timer (7 days from now)
+  const endTime = Date.now() + 7*24*60*60*1000;
+  function updateCountdown(){
+    const diff = Math.max(0, endTime - Date.now());
+    const d = Math.floor(diff/(24*60*60*1000));
+    const h = Math.floor((diff%(24*60*60*1000))/(60*60*1000));
+    const m = Math.floor((diff%(60*60*1000))/(60*1000));
+    const s = Math.floor((diff%(60*1000))/1000);
+    document.getElementById('cd-days').textContent = String(d).padStart(2,'0');
+    document.getElementById('cd-hours').textContent = String(h).padStart(2,'0');
+    document.getElementById('cd-mins').textContent = String(m).padStart(2,'0');
+    document.getElementById('cd-secs').textContent = String(s).padStart(2,'0');
+  }
+  updateCountdown();
+  setInterval(updateCountdown,1000);
+
+  // Mark first page visible on load
+  setTimeout(()=>{pages[0].classList.add('visible')},100);
+})();
+</script>
+</body>
+</html>
